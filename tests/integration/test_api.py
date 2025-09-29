@@ -1,4 +1,3 @@
-# tests/integration/test_api.py
 import os, requests, pytest
 pytestmark = pytest.mark.integration
 BASE = os.getenv("APP_BASE","http://app:8000")

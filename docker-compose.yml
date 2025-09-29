@@ -1,4 +1,3 @@
-# docker-compose.yml
 services:
   mockoon:
     image: mockoon/cli:latest
