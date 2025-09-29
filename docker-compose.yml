@@ -1,0 +1,23 @@
+# docker-compose.yml
+services:
+  mockoon:
+    image: mockoon/cli:latest
+    command: ["-d","/data/mockoon.json","start","--daemon-off"]
+    volumes: [ "./mockoon.json:/data/mockoon.json:ro" ]
+    ports: [ "3000:3000" ]
+  app:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes: [ ".:/app" ]
+    environment:
+      MOCK_BASE: http://mockoon:3000
+    command: sh -c "pip install -r requirements.txt && uvicorn src.app:app --host 0.0.0.0 --port 8000"
+    depends_on: [ mockoon ]
+  tests:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes: [ ".:/app" ]
+    environment:
+      APP_BASE: http://app:8000
+    command: sh -c "pip install -r requirements.txt pytest && pytest -m 'unit or integration' -q"
+    depends_on: [ app ]
