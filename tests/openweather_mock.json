@@ -1,91 +1,106 @@
 {
-  "uuid": "mockoon-openweather-guanacaste",
-  "name": "OpenWeather Mock API",
-  "endpointPrefix": "",
-  "latency": 0,
-  "port": 3000,
-  "routes": [
+  "source": "mockoon:datastore",
+  "data": [
     {
-      "uuid": "route-geo-direct",
-      "documentation": "Mocked geocoding endpoint for city lookup",
-      "method": "get",
-      "endpoint": "/geo/1.0/direct",
-      "responses": [
-        {
-          "uuid": "resp-geo-guanacaste",
-          "label": "Guanacaste geocode",
-          "statusCode": 200,
-          "headers": [
-            { "key": "Content-Type", "value": "application/json" }
-          ],
-          "body": [
-            {
-              "name": "guanacaste",
-              "lat": 10.5,
-              "lon": -85.4,
-              "country": "CR"
-            }
-          ],
-          "rules": [
-            {
-              "target": "queryParam",
-              "modifier": "q",
-              "value": "guanacaste,CR",
-              "operator": "equals"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "uuid": "route-weather",
-      "documentation": "Mocked weather endpoint for coordinates",
-      "method": "get",
-      "endpoint": "/data/2.5/weather",
-      "responses": [
-        {
-          "uuid": "resp-weather-guanacaste",
-          "label": "Current weather for Guanacaste",
-          "statusCode": 200,
-          "headers": [
-            { "key": "Content-Type", "value": "application/json" }
-          ],
-          "body": {
-            "coord": { "lat": 10.5, "lon": -85.4 },
-            "weather": [
-              { "id": 801, "main": "Clouds", "description": "few clouds", "icon": "02d" }
-            ],
-            "main": {
-              "temp": 302.15,
-              "feels_like": 305.0,
-              "pressure": 1012,
-              "humidity": 70
-            },
-            "wind": { "speed": 2.6, "deg": 140 },
-            "clouds": { "all": 20 },
-            "dt": 1700000000,
-            "sys": { "country": "CR" },
-            "name": "guanacaste"
+      "type": "environment",
+      "item": {
+        "uuid": "f0c2a4b0-0e2d-4cfe-bb4b-111111111111",
+        "type": "http",
+        "name": "OpenWeather Mock API",
+        "endpointPrefix": "",
+        "port": 3000,
+        "hostname": "0.0.0.0",
+        "cors": true,
+        "routes": [
+          {
+            "uuid": "a1111111-1111-1111-1111-a11111111111",
+            "type": "http",
+            "documentation": "Mocked geocoding endpoint for city lookup",
+            "method": "get",
+            "endpoint": "/geo/1.0/direct",
+            "responses": [
+              {
+                "uuid": "b1111111-1111-1111-1111-b11111111111",
+                "label": "Guanacaste geocode",
+                "statusCode": 200,
+                "headers": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": [
+                  { "name": "guanacaste", "lat": 10.5, "lon": -85.4, "country": "CR" }
+                ],
+                "rules": [
+                  {
+                    "target": "queryParam",
+                    "modifier": "q",
+                    "operator": "equals",
+                    "value": "guanacaste,CR"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "a2222222-2222-2222-2222-a22222222222",
+            "type": "http",
+            "documentation": "Mocked weather endpoint for coordinates",
+            "method": "get",
+            "endpoint": "/data/2.5/weather",
+            "responses": [
+              {
+                "uuid": "b2222222-2222-2222-2222-b22222222222",
+                "label": "Current weather for Guanacaste",
+                "statusCode": 200,
+                "headers": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "coord": { "lat": 10.5, "lon": -85.4 },
+                  "weather": [
+                    { "id": 801, "main": "Clouds", "description": "few clouds", "icon": "02d" }
+                  ],
+                  "main": { "temp": 302.15, "feels_like": 305.0, "pressure": 1012, "humidity": 70 },
+                  "wind": { "speed": 2.6, "deg": 140 },
+                  "clouds": { "all": 20 },
+                  "dt": 1700000000,
+                  "sys": { "country": "CR" },
+                  "name": "guanacaste"
+                },
+                "rules": [
+                  { "target": "queryParam", "modifier": "lat", "operator": "equals", "value": "10.5" },
+                  { "target": "queryParam", "modifier": "lon", "operator": "equals", "value": "-85.4" }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "a3333333-3333-3333-3333-a33333333333",
+            "type": "http",
+            "documentation": "Health check for CI readiness",
+            "method": "get",
+            "endpoint": "/health",
+            "responses": [
+              {
+                "uuid": "b3333333-3333-3333-3333-b33333333333",
+                "label": "Mockoon Health OK",
+                "statusCode": 200,
+                "headers": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": { "status": "ok" }
+              }
+            ]
           }
-        }
-      ]
-    },
-    {
-      "uuid": "route-health",
-      "documentation": "Health check for CI readiness",
-      "method": "get",
-      "endpoint": "/health",
-      "responses": [
-        {
-          "uuid": "resp-health",
-          "label": "Mockoon Health OK",
-          "statusCode": 200,
-          "headers": [
-            { "key": "Content-Type", "value": "application/json" }
-          ],
-          "body": { "status": "ok" }
-        }
-      ]
+        ],
+        "routesOrder": [
+          "a1111111-1111-1111-1111-a11111111111",
+          "a2222222-2222-2222-2222-a22222222222",
+          "a3333333-3333-3333-3333-a33333333333"
+        ],
+        "tlsOptions": { "enabled": false },
+        "proxyMode": false,
+        "headers": []
+      }
     }
   ]
 }

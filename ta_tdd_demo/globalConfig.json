@@ -67,61 +67,95 @@
         "inputs": {
             "services": [
                 {
-                    "name": "city_weather_input",
-                    "entity": [
+                "name": "city_weather_input",
+                "entity": [
+                    {
+                    "type": "text",
+                    "label": "Name",
+                    "validators": [
                         {
-                            "type": "text",
-                            "label": "Name",
-                            "validators": [
-                                {
-                                    "type": "regex",
-                                    "errorMsg": "Input Name must begin with a letter and consist exclusively of alphanumeric characters and underscores.",
-                                    "pattern": "^[a-zA-Z]\\w*$"
-                                },
-                                {
-                                    "type": "string",
-                                    "errorMsg": "Length of input name should be between 1 and 100",
-                                    "minLength": 1,
-                                    "maxLength": 100
-                                }
-                            ],
-                            "field": "city",
-                            "help": "What City would you like to monitor.",
-                            "required": true
+                        "type": "regex",
+                        "errorMsg": "Input name must begin with a letter and consist exclusively of alphanumeric characters and underscores.",
+                        "pattern": "^[a-zA-Z]\\w*$"
                         },
                         {
-                            "type": "interval",
-                            "label": "Interval",
-                            "defaultValue": "86400",
-                            "field": "interval",
-                            "options": {
-                                "range": [
-                                    10,
-                                    86400
-                                ]
-                            },
-                            "help": "Time interval of the data input, in seconds.",
-                            "required": true
-                        },
-                        {
-                            "type": "index",
-                            "field": "index",
-                            "label": "Index"
-                        },
-                        {
-                            "type": "singleSelect",
-                            "label": "Account to use",
-                            "options": {
-                                "referenceName": "account"
-                            },
-                            "help": "Account to use for this input.",
-                            "field": "account",
-                            "required": true
+                        "type": "string",
+                        "errorMsg": "Length of input name should be between 1 and 100.",
+                        "minLength": 1,
+                        "maxLength": 100
                         }
                     ],
-                    "inputHelperModule": "city_weather_input_helper",
-                    "title": "city_weather_input"
+                    "field": "name",
+                    "help": "Unique name for this data input.",
+                    "required": true
+                    },
+                    {
+                    "type": "text",
+                    "label": "City",
+                    "field": "city",
+                    "help": "City to monitor (use lowercase when using Mockoon, e.g., guanacaste).",
+                    "validators": [
+                        {
+                        "type": "string",
+                        "errorMsg": "City name must be between 1 and 100 characters.",
+                        "minLength": 1,
+                        "maxLength": 100
+                        }
+                    ],
+                    "required": true
+                    },
+                    {
+                    "type": "text",
+                    "label": "Country Code",
+                    "field": "country_code",
+                    "defaultValue": "CR",
+                    "help": "ISO 3166-1 alpha-2 country code (e.g., CR).",
+                    "validators": [
+                        {
+                        "type": "regex",
+                        "errorMsg": "Must be a two-letter uppercase country code.",
+                        "pattern": "^[A-Z]{2}$"
+                        }
+                    ],
+                    "required": true
+                    },
+                    {
+                    "type": "text",
+                    "label": "Sourcetype",
+                    "field": "sourcetype",
+                    "defaultValue": "weather:current",
+                    "help": "Sourcetype used for indexed weather events.",
+                    "required": true
+                    },
+                    {
+                    "type": "index",
+                    "label": "Index",
+                    "field": "index",
+                    "help": "Target index for ingested events.",
+                    "required": true
+                    },
+                    {
+                    "type": "interval",
+                    "label": "Interval",
+                    "defaultValue": "86400",
+                    "field": "interval",
+                    "options": { "range": [10, 86400] },
+                    "help": "Time interval (in seconds) between input runs.",
+                    "required": true
+                    },
+                    {
+                    "type": "singleSelect",
+                    "label": "Account to Use",
+                    "field": "account",
+                    "options": { "referenceName": "account" },
+                    "help": "Select the account that provides the base_url and API key.",
+                    "required": true
+                    }
+                ],
+                "inputHelperModule": "city_weather_input_helper",
+                "title": "City Weather Input"
                 }
+
             ],
             "title": "Inputs",
             "description": "Manage your data inputs",
