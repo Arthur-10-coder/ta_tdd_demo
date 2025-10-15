@@ -28,7 +28,6 @@ jobs:
         version: [9.4.1, 9.3.3, 9.2.5]
 
     env:
-      # Mock / test params
       TEST_CITY: guanacaste
       TEST_COUNTRY: CR
       TEST_INDEX: weather_test
@@ -60,7 +59,6 @@ jobs:
           (cd ta_tdd_demo && ucc-gen build --ta-version "${app_version}")
           mkdir -p ta_tdd_demo/output/${app_id}/local
           cp etc/cicd/inputs.conf ta_tdd_demo/output/${app_id}/local/inputs.conf
-          
           cat > ta_tdd_demo/output/${app_id}/local/ta_tdd_demo_account.conf <<EOF
           [demo_account]
           base_url = ${BASE_URL}
@@ -74,13 +72,8 @@ jobs:
       - name: Start Mockoon container
         run: |
           set -euxo pipefail
-          # 1) Verifica que el JSON exista
           ls -l ${{ github.workspace }}/tests/openweather_mock.json
-
-          # 2) Limpia contenedor previo
           docker rm -f mockoon || true
-
-          # 3) Run con flags clave
           docker run -d --name mockoon \
             --network shared-net \
             -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mock.json:ro \
@@ -91,39 +84,22 @@ jobs:
             --hostname 0.0.0.0 \
             --port 3000 \
             --log-transaction
-
-          # 4) Logs e inspección (ver bind / errores)
-          docker logs --tail=200 mockoon || true
+          docker logs --tail=100 mockoon || true
           docker inspect -f '{{json .NetworkSettings.Ports}}' mockoon
 
-          # 5) Espera /health (tu JSON lo define)
+      - name: Test Mockoon is alive
+        run: |
           for i in {1..30}; do
             if curl --silent --fail http://localhost:3000/health; then
-              echo "Mockoon is up!"; break
+              echo "Mockoon is up!"; exit 0
             fi
             echo "Waiting for Mockoon..."; sleep 2
             docker logs --tail=50 mockoon || true
           done
+          echo "Mockoon failed to start"; exit 1
 
-          # 6) Sanity endpoints
-          curl -sSf "http://localhost:3000/geo/1.0/direct?q=guanacaste,CR&limit=1&appid=dummy-key" >/dev/null
-          curl -sSf "http://localhost:3000/data/2.5/weather?lat=10.5&lon=-85.4&appid=dummy-key" >/dev/null
-
+      - name: Sanity endpoints
         run: |
-          docker run -d --name mockoon \
-            --network shared-net \
-            -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mockoon.json \
-            -p 3000:3000 \
-            mockoon/cli:latest \
-            --data /data/mockoon.json --port 3000 --log-transaction
-          # health
-          for i in {1..30}; do
-            if curl --silent --fail http://localhost:3000/health; then
-              echo "Mockoon is up!"; break
-            fi
-            echo "Waiting for Mockoon..."; sleep 2
-          done
-          # sanity endpoints
           curl -sSf "http://localhost:3000/geo/1.0/direct?q=guanacaste,CR&limit=1&appid=dummy-key" >/dev/null
           curl -sSf "http://localhost:3000/data/2.5/weather?lat=10.5&lon=-85.4&appid=dummy-key" >/dev/null
 
@@ -141,20 +117,7 @@ jobs:
             -p 8000:8000 \
             -p 8089:8089 \
             splunk/splunk:${{ matrix.version }}
-          # Wait for splunk (~150s similar to reference)
           sleep 150
-
-      - name: Test Mockoon is alive
-        run: |
-          docker logs mockoon
-          for i in {1..30}; do
-            if curl --silent --fail http://localhost:3000/; then
-              echo "Mockoon is up!"
-              exit 0
-            fi
-            echo "Waiting for Mockoon..."; sleep 2
-          done
-          echo "Mockoon failed to start"; exit 1
 
       - name: Test Splunk readiness + connectivity to Mockoon
         run: |
@@ -162,7 +125,7 @@ jobs:
           EXPECTED="Ansible playbook complete, will begin streaming splunkd_stderr.log"
           docker logs splunk 2>&1 | tail -n 50 | grep -F "$EXPECTED" && echo "Found expected line." || (echo "Expected line not found." && exit 1)
           echo "Test connectivity from Splunk to Mockoon..."
-          docker exec splunk curl -sSf http://mockoon:3000/ >/dev/null || (echo "Failed to reach Mockoon from Splunk" && exit 1)
+          docker exec splunk curl -sSf http://mockoon:3000/health >/dev/null
 
       - name: Obtain Splunk session key
         id: sess
@@ -198,7 +161,6 @@ jobs:
           pip install pytest requests-mock splunk-sdk
           mkdir -p junit
           python -m pytest integration/* --junitxml=junit/integration-test-results-${{ matrix.version }}.xml
-
 
       - name: Export Mockoon logs
         if: always()
