@@ -63,8 +63,8 @@ jobs:
           (cd ta_tdd_demo && ucc-gen build --ta-version "${app_version}")
 
           mkdir -p "ta_tdd_demo/output/${app_id}/local"
-          # Habilitar input
-          sed 's/disabled = 1/disabled = 0/' etc/cicd/inputs.conf > "ta_tdd_demo/output/${app_id}/local/inputs.conf"
+          # Habilitar input (usar el inputs.conf dentro de ta_tdd_demo/)
+          sed 's/disabled = 1/disabled = 0/' ta_tdd_demo/etc/cicd/inputs.conf > "ta_tdd_demo/output/${app_id}/local/inputs.conf"
           # Configurar cuenta
           cat > "ta_tdd_demo/output/${app_id}/local/ta_tdd_demo_account.conf" <<EOF
           [demo_account]
@@ -83,7 +83,7 @@ jobs:
           docker rm -f mockoon || true
           docker run -d --name mockoon \
             --network shared-net \
-            -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mock.json:ro \
+            -v ${{ github.workspace }}/ta_tdd_demo/tests/openweather_mock.json:/data/mock.json:ro \
             -p 3000:3000 \
             mockoon/cli:latest \
             start --data /data/mock.json --index 0 --hostname 0.0.0.0 --port 3000 --log-transaction
@@ -140,7 +140,7 @@ jobs:
             -d name=${TEST_INDEX} -d datatype=event -d maxTotalDataSizeMB=100 || true
 
       - name: Run integration tests
-        working-directory: ./tests
+        working-directory: ./ta_tdd_demo/tests
         env:
           SPLUNK_SESSION_KEY: ${{ steps.sess.outputs.SPLUNK_SESSION_KEY }}
           SPLUNK_APP: ${{ steps.build.outputs.app_id }}
@@ -155,12 +155,13 @@ jobs:
           TEST_COUNTRY: ${{ env.TEST_COUNTRY }}
           TEST_INDEX: ${{ env.TEST_INDEX }}
         run: |
-          pytest -q integration
+          mkdir -p junit
+          pytest -q integration --junitxml=junit/integration-${{ matrix.version }}.xml
 
       - uses: dorny/test-reporter@v2
         if: always()
         with:
           name: Tests Results
-          path: 'tests/junit/*.xml'
+          path: 'ta_tdd_demo/tests/junit/*.xml'
           reporter: java-junit
           fail-on-error: 'false'
