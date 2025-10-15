@@ -7,6 +7,12 @@ on:
     paths:
       - ta_tdd_demo/package/bin/**
       - ta_tdd_demo/package/lib/requirements.txt
+  workflow_dispatch:
+    inputs:
+      splunk_versions:
+        description: "list of versions"
+        required: false
+        default: "9.4.1,9.3.3,9.2.5"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -54,7 +60,7 @@ jobs:
           (cd ta_tdd_demo && ucc-gen build --ta-version "${app_version}")
           mkdir -p ta_tdd_demo/output/${app_id}/local
           cp etc/cicd/inputs.conf ta_tdd_demo/output/${app_id}/local/inputs.conf
-          # Create local account for tests (UCC account: demo_account)
+          
           cat > ta_tdd_demo/output/${app_id}/local/ta_tdd_demo_account.conf <<EOF
           [demo_account]
           base_url = ${BASE_URL}
@@ -137,7 +143,6 @@ jobs:
       - name: Run integration tests
         working-directory: ./tests
         env:
-          # Fixtures env for tests/integration/conftest.py
           SPLUNK_SESSION_KEY: ${{ steps.sess.outputs.SPLUNK_SESSION_KEY }}
           SPLUNK_APP: ${{ steps.build.outputs.app_id }}
           KV_COLLECTION: ${{ env.KV_COLLECTION }}
@@ -157,17 +162,6 @@ jobs:
           mkdir -p junit
           python -m pytest integration/* --junitxml=junit/integration-test-results-${{ matrix.version }}.xml
 
-      # (Opcional) Functional tests si tienes carpeta modinput_functional/
-      # - name: Run functional tests
-      #   if: success()
-      #   working-directory: ./tests
-      #   env:
-      #     SPLUNK_SESSION_KEY: ${{ steps.sess.outputs.SPLUNK_SESSION_KEY }}
-      #     SPLUNK_APP: ${{ steps.build.outputs.app_id }}
-      #     BASE_URL: ${{ env.BASE_URL }}
-      #     API_KEY: ${{ env.API_KEY }}
-      #   run: |
-      #     python -m pytest modinput_functional/* --junitxml=junit/test-results-${{ matrix.version }}.xml
 
       - name: Export Mockoon logs
         if: always()

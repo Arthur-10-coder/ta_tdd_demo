@@ -1,8 +1,0 @@
-{
-  "name": "workshop",
-  "port": 3000,
-  "routes": [
-    { "method": "get", "endpoint": "api/greeting",
-      "responses": [{ "statusCode": 200, "body": "{\"msg\":\"hello from mock\"}" }] }
-  ]
-}
