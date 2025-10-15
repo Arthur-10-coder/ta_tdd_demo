@@ -24,8 +24,9 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
-    matrix:
-      version: [9.4.1, 9.3.3, 9.2.5]
+      matrix:
+        version: [9.4.1, 9.3.3, 9.2.5]
+
 
     env:
       TEST_CITY: guanacaste
