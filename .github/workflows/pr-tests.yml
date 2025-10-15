@@ -47,7 +47,7 @@ jobs:
           set -euxo pipefail
           python -m pip install --upgrade pip
           pip install --upgrade splunk-packaging-toolkit splunk-add-on-ucc-framework
-          pip install -r ta_tdd_demo/package/lib/requirements.txt
+          pip install -r package/lib/requirements.txt
           sudo apt-get update && sudo apt-get install -y jq pytest requests-mock splunk-sdk
 
       - name: Build TA and enable input
