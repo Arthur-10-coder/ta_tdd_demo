@@ -75,19 +75,40 @@ jobs:
           set -euxo pipefail
           ls -l ${{ github.workspace }}/tests/openweather_mock.json
           docker rm -f mockoon || true
-          docker run -d --name mockoon \
-            --network shared-net \
-            -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mock.json:ro \
-            -p 3000:3000 \
-            mockoon/cli:latest start \
-            --data /data/mock.json \
-            --hostname 0.0.0.0 \
-            --port 3000 \
-            --log-transaction
+
+          run_mockoon() {
+            docker run -d --name mockoon \
+              --network shared-net \
+              -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mock.json:ro \
+              -p 3004:3004 \
+              mockoon/cli:latest "$@" \
+              --data /data/mock.json \
+              --hostname 0.0.0.0 \
+              --port 3004 \
+              --log-transaction
+          }
+
+          # 1) intenta con 'start'
+          if ! run_mockoon start; then
+            # 2) reintenta sin 'start' (para CLIs antiguos)
+            docker rm -f mockoon || true
+            run_mockoon
+          fi
+
           docker logs --tail=100 mockoon || true
           docker inspect -f '{{json .NetworkSettings.Ports}}' mockoon
 
       - name: Test Mockoon is alive
+        run: |
+          for i in {1..5}; do
+            if curl --silent --fail http://localhost:3004/health; then
+              echo "Mockoon is up!"; exit 0
+            fi
+            echo "Waiting for Mockoon..."; sleep 2
+            docker logs --tail=50 mockoon || true
+          done
+          echo "Mockoon failed to start"; exit 1
+
         run: |
           for i in {1..30}; do
             if curl --silent --fail http://localhost:3000/health; then
