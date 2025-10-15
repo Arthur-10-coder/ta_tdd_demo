@@ -9,6 +9,46 @@
   "folders": [],
   "routes": [
     {
+      "uuid": "a0000000-0000-0000-0000-a00000000000",
+      "type": "http",
+      "documentation": "Root OK (para healthcheck simple)",
+      "method": "get",
+      "endpoint": "/",
+      "responses": [
+        {
+          "uuid": "b0000000-0000-0000-0000-b00000000000",
+          "label": "Root OK",
+          "statusCode": 200,
+          "headers": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\"ok\":true}",
+          "bodyType": "INLINE",
+          "rules": [],
+          "rulesOperator": "OR",
+          "default": true
+        }
+      ]
+    },
+    {
+      "uuid": "a3333333-3333-3333-3333-a33333333333",
+      "type": "http",
+      "documentation": "Health check for CI readiness",
+      "method": "get",
+      "endpoint": "/health",
+      "responses": [
+        {
+          "uuid": "b3333333-3333-3333-3333-b33333333333",
+          "label": "Mockoon Health OK",
+          "statusCode": 200,
+          "headers": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\"status\":\"ok\"}",
+          "bodyType": "INLINE",
+          "rules": [],
+          "rulesOperator": "OR",
+          "default": true
+        }
+      ]
+    },
+    {
       "uuid": "a1111111-1111-1111-1111-a11111111111",
       "type": "http",
       "documentation": "Mocked geocoding endpoint for city lookup",
@@ -52,32 +92,13 @@
           "default": true
         }
       ]
-    },
-    {
-      "uuid": "a3333333-3333-3333-3333-a33333333333",
-      "type": "http",
-      "documentation": "Health check for CI readiness",
-      "method": "get",
-      "endpoint": "/health",
-      "responses": [
-        {
-          "uuid": "b3333333-3333-3333-3333-b33333333333",
-          "label": "Mockoon Health OK",
-          "statusCode": 200,
-          "headers": [{ "key": "Content-Type", "value": "application/json" }],
-          "body": "{\"status\":\"ok\"}",
-          "bodyType": "INLINE",
-          "rules": [],
-          "rulesOperator": "OR",
-          "default": true
-        }
-      ]
     }
   ],
   "rootChildren": [
+    { "type": "route", "uuid": "a0000000-0000-0000-0000-a00000000000" },
+    { "type": "route", "uuid": "a3333333-3333-3333-3333-a33333333333" },
     { "type": "route", "uuid": "a1111111-1111-1111-1111-a11111111111" },
-    { "type": "route", "uuid": "a2222222-2222-2222-2222-a22222222222" },
-    { "type": "route", "uuid": "a3333333-3333-3333-3333-a33333333333" }
+    { "type": "route", "uuid": "a2222222-2222-2222-2222-a22222222222" }
   ],
   "proxyMode": false,
   "proxyRemovePrefix": true,

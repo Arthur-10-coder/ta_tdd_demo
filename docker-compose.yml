@@ -1,22 +1,45 @@
+version: "3.8"
+
 services:
   mockoon:
     image: mockoon/cli:latest
-    command: ["-d","/data/mockoon.json","start","--daemon-off"]
-    volumes: [ "./mockoon.json:/data/mockoon.json:ro" ]
-    ports: [ "3000:3000" ]
-  app:
-    image: python:3.11-slim
-    working_dir: /app
-    volumes: [ ".:/app" ]
+    command:
+      - start
+      - --data
+      - /data/mock.json
+      - --index
+      - "0"
+      - --hostname
+      - 0.0.0.0
+      - --port
+      - "3000"
+      - --log-transaction
+    volumes:
+      - ./tests/openweather_mock.json:/data/mock.json:ro
+    ports:
+      - "3000:3000"
+    healthcheck:
+      # usa Node dentro de la imagen para comprobar /health
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"http=require('http');http.get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1));\""
+        ]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+    restart: unless-stopped
+
+  splunk:
+    image: splunk/splunk:9.4.1
     environment:
-      MOCK_BASE: http://mockoon:3000
-    command: sh -c "pip install -r requirements.txt && uvicorn src.app:app --host 0.0.0.0 --port 8000"
-    depends_on: [ mockoon ]
-  tests:
-    image: python:3.11-slim
-    working_dir: /app
-    volumes: [ ".:/app" ]
-    environment:
-      APP_BASE: http://app:8000
-    command: sh -c "pip install -r requirements.txt pytest && pytest -m 'unit or integration' -q"
-    depends_on: [ app ]
+      SPLUNK_START_ARGS: --answer-yes --no-prompt --accept-license
+      SPLUNK_PASSWORD: password
+      SPLUNK_USER: root
+    ports:
+      - "8000:8000"
+      - "8089:8089"
+    depends_on:
+      mockoon:
+        condition: service_healthy
+    restart: unless-stopped
