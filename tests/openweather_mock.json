@@ -5,7 +5,7 @@
   "endpointPrefix": "",
   "latency": 0,
   "port": 3000,
-  "hostname": "0.0.0.0",
+  "hostname": "",
   "folders": [],
   "routes": [
     {
@@ -101,8 +101,36 @@
     { "type": "route", "uuid": "a2222222-2222-2222-2222-a22222222222" }
   ],
   "proxyMode": false,
+  "proxyHost": "",
   "proxyRemovePrefix": true,
-  "tlsOptions": { "enabled": false },
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
   "cors": true,
-  "headers": [{ "key": "Content-Type", "value": "application/json" }]
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [],
+  "callbacks": []
 }

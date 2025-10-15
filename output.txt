@@ -1,0 +1,75 @@
+python3 -m venv .venv
+. .venv/bin/activate; \
+	pip install --upgrade pip; \
+	# NO instales splunk-packaging-toolkit local (evita permisos/manpages)
+Requirement already satisfied: pip in ./.venv/lib/python3.8/site-packages (25.0.1)
+pip install splunk-add-on-ucc-framework; \
+	pip install -r package/lib/requirements.txt; \
+	pip install pytest requests-mock
+Requirement already satisfied: splunk-add-on-ucc-framework in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (5.55.0)
+Requirement already satisfied: PyYAML<7.0,>=6.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (6.0.2)
+Requirement already satisfied: addonfactory-splunk-conf-parser-lib<0.5.0,>=0.4.3 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (0.4.3)
+Requirement already satisfied: colorama<0.5.0,>=0.4.6 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (0.4.6)
+Requirement already satisfied: defusedxml<0.8.0,>=0.7.1 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (0.7.1)
+Requirement already satisfied: dunamai<2.0.0,>=1.22.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (1.23.0)
+Requirement already satisfied: jinja2<4,>=2 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (3.1.5)
+Requirement already satisfied: jsonschema<5.0.0,>=4.4.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (4.23.0)
+Requirement already satisfied: packaging>=23.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-add-on-ucc-framework) (24.2)
+Requirement already satisfied: MarkupSafe>=2.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from jinja2<4,>=2->splunk-add-on-ucc-framework) (2.1.5)
+Requirement already satisfied: attrs>=22.2.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from jsonschema<5.0.0,>=4.4.0->splunk-add-on-ucc-framework) (24.3.0)
+Requirement already satisfied: importlib-resources>=1.4.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from jsonschema<5.0.0,>=4.4.0->splunk-add-on-ucc-framework) (6.4.5)
+Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from jsonschema<5.0.0,>=4.4.0->splunk-add-on-ucc-framework) (2023.12.1)
+Requirement already satisfied: pkgutil-resolve-name>=1.3.10 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from jsonschema<5.0.0,>=4.4.0->splunk-add-on-ucc-framework) (1.3.10)
+Requirement already satisfied: referencing>=0.28.4 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from jsonschema<5.0.0,>=4.4.0->splunk-add-on-ucc-framework) (0.35.1)
+Requirement already satisfied: rpds-py>=0.7.1 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from jsonschema<5.0.0,>=4.4.0->splunk-add-on-ucc-framework) (0.20.1)
+Requirement already satisfied: zipp>=3.1.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from importlib-resources>=1.4.0->jsonschema<5.0.0,>=4.4.0->splunk-add-on-ucc-framework) (3.20.2)
+Collecting splunktaucclib (from -r package/lib/requirements.txt (line 1))
+  Using cached splunktaucclib-8.0.0-py3-none-any.whl.metadata (700 bytes)
+Requirement already satisfied: splunk-sdk in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from -r package/lib/requirements.txt (line 2)) (2.1.0)
+Collecting solnlib (from -r package/lib/requirements.txt (line 3))
+  Using cached solnlib-7.0.0-py3-none-any.whl.metadata (1.3 kB)
+Collecting PySocks<2.0.0,>=1.7.1 (from splunktaucclib->-r package/lib/requirements.txt (line 1))
+  Using cached PySocks-1.7.1-py3-none-any.whl.metadata (13 kB)
+Requirement already satisfied: defusedxml>=0.7 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunktaucclib->-r package/lib/requirements.txt (line 1)) (0.7.1)
+Collecting urllib3<2 (from splunktaucclib->-r package/lib/requirements.txt (line 1))
+  Using cached urllib3-1.26.20-py2.py3-none-any.whl.metadata (50 kB)
+Requirement already satisfied: deprecation in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from splunk-sdk->-r package/lib/requirements.txt (line 2)) (2.1.0)
+Collecting sortedcontainers>=2 (from solnlib->-r package/lib/requirements.txt (line 3))
+  Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+Requirement already satisfied: packaging in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from deprecation->splunk-sdk->-r package/lib/requirements.txt (line 2)) (24.2)
+Using cached splunktaucclib-8.0.0-py3-none-any.whl (83 kB)
+Using cached solnlib-7.0.0-py3-none-any.whl (79 kB)
+Using cached PySocks-1.7.1-py3-none-any.whl (16 kB)
+Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+Using cached urllib3-1.26.20-py2.py3-none-any.whl (144 kB)
+Installing collected packages: sortedcontainers, urllib3, PySocks, solnlib, splunktaucclib
+  Attempting uninstall: urllib3
+    Found existing installation: urllib3 2.2.3
+    Uninstalling urllib3-2.2.3:
+      Successfully uninstalled urllib3-2.2.3
+Successfully installed PySocks-1.7.1 solnlib-7.0.0 sortedcontainers-2.4.0 splunktaucclib-8.0.0 urllib3-1.26.20
+Requirement already satisfied: pytest in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (6.2.4)
+Collecting requests-mock
+  Using cached requests_mock-1.12.1-py2.py3-none-any.whl.metadata (4.1 kB)
+Requirement already satisfied: attrs>=19.2.0 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from pytest) (24.3.0)
+Requirement already satisfied: iniconfig in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from pytest) (2.1.0)
+Requirement already satisfied: packaging in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from pytest) (24.2)
+Requirement already satisfied: pluggy<1.0.0a1,>=0.12 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from pytest) (1.0.0.dev0)
+Requirement already satisfied: py>=1.8.2 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from pytest) (1.11.0)
+Requirement already satisfied: toml in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from pytest) (0.10.2)
+Requirement already satisfied: requests<3,>=2.22 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from requests-mock) (2.32.3)
+Requirement already satisfied: charset-normalizer<4,>=2 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from requests<3,>=2.22->requests-mock) (3.4.1)
+Requirement already satisfied: idna<4,>=2.5 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from requests<3,>=2.22->requests-mock) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from requests<3,>=2.22->requests-mock) (1.26.20)
+Requirement already satisfied: certifi>=2017.4.17 in /Users/jortizar/.pyenv/versions/3.8.10/lib/python3.8/site-packages (from requests<3,>=2.22->requests-mock) (2024.12.14)
+Using cached requests_mock-1.12.1-py2.py3-none-any.whl (27 kB)
+Installing collected packages: requests-mock
+Successfully installed requests-mock-1.12.1
+. .venv/bin/activate; \
+	ucc-gen build --ta-version=$(jq -r '.meta.version' globalConfig.json); \
+	mkdir -p output/$(jq -r '.meta.name' globalConfig.json)/local
+sed 's/disabled = 1/disabled = 0/' etc/cicd/inputs.conf > output/$(jq -r '.meta.name' globalConfig.json)/local/inputs.conf
+printf "[demo_account]\nbase_url = http://localhost:3000\napi_key = dummy-key\n" > output/$(jq -r '.meta.name' globalConfig.json)/local/ta_tdd_demo_account.conf
+chmod -R +r output && chmod -R go-w output
+# Fuerza plataforma x86 en Mac ARM para ambas imágenes
+DOCKER_DEFAULT_PLATFORM=linux/amd64 APP_NAME=$(jq -r '.meta.name' globalConfig.json) docker compose up -d

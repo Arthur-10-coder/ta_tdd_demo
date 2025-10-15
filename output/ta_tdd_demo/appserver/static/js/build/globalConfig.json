@@ -1,0 +1,306 @@
+{
+    "pages": {
+        "configuration": {
+            "tabs": [
+                {
+                    "name": "account",
+                    "table": {
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ],
+                        "header": [
+                            {
+                                "label": "Name",
+                                "field": "name"
+                            }
+                        ]
+                    },
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Account Name must begin with a letter and consist exclusively of alphanumeric characters and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length of input name should be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ],
+                            "field": "name",
+                            "help": "A unique name for the account.",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "label": "Base URL",
+                            "field": "base_url",
+                            "help": "url of the api",
+                            "required": true,
+                            "encrypted": false
+                        },
+                        {
+                            "type": "text",
+                            "label": "API key",
+                            "field": "api_key",
+                            "help": "API key",
+                            "required": true,
+                            "encrypted": true
+                        }
+                    ],
+                    "title": "Accounts"
+                },
+                {
+                    "name": "logging",
+                    "title": "Logging",
+                    "entity": [
+                        {
+                            "type": "singleSelect",
+                            "label": "Log level",
+                            "options": {
+                                "disableSearch": true,
+                                "autoCompleteFields": [
+                                    {
+                                        "value": "DEBUG",
+                                        "label": "DEBUG"
+                                    },
+                                    {
+                                        "value": "INFO",
+                                        "label": "INFO"
+                                    },
+                                    {
+                                        "value": "WARNING",
+                                        "label": "WARNING"
+                                    },
+                                    {
+                                        "value": "ERROR",
+                                        "label": "ERROR"
+                                    },
+                                    {
+                                        "value": "CRITICAL",
+                                        "label": "CRITICAL"
+                                    }
+                                ]
+                            },
+                            "defaultValue": "INFO",
+                            "field": "loglevel",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Log level must be one of: DEBUG, INFO, WARNING, ERROR, CRITICAL",
+                                    "pattern": "^DEBUG|INFO|WARNING|ERROR|CRITICAL$"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "title": "Configuration",
+            "description": "Set up your add-on"
+        },
+        "inputs": {
+            "services": [
+                {
+                    "name": "city_weather_input",
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Input name must begin with a letter and consist exclusively of alphanumeric characters and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length of input name should be between 1 and 100.",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ],
+                            "field": "name",
+                            "help": "Unique name for this data input.",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "label": "City",
+                            "field": "city",
+                            "help": "City to monitor (use lowercase when using Mockoon, e.g., guanacaste).",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "City name must be between 1 and 100 characters.",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ],
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "label": "Country Code",
+                            "field": "country_code",
+                            "defaultValue": "CR",
+                            "help": "ISO 3166-1 alpha-2 country code (e.g., CR).",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must be a two-letter uppercase country code.",
+                                    "pattern": "^[A-Z]{2}$"
+                                }
+                            ],
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "label": "Sourcetype",
+                            "field": "sourcetype",
+                            "defaultValue": "weather:current",
+                            "help": "Sourcetype used for indexed weather events.",
+                            "required": true
+                        },
+                        {
+                            "type": "singleSelect",
+                            "field": "index",
+                            "label": "Index",
+                            "defaultValue": "default",
+                            "options": {
+                                "endpointUrl": "data/indexes?search=isInternal=0+disabled=0",
+                                "denyList": "^_.*$",
+                                "createSearchChoice": true
+                            },
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Index names must begin with a letter or a number and must contain only letters, numbers, underscores or hyphens.",
+                                    "pattern": "^[a-zA-Z0-9][a-zA-Z0-9\\\\_\\\\-]*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length of index name should be between 1 and 80.",
+                                    "minLength": 1,
+                                    "maxLength": 80
+                                }
+                            ],
+                            "help": "Target index for ingested events.",
+                            "required": true
+                        },
+                        {
+                            "type": "text",
+                            "field": "interval",
+                            "label": "Interval",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Interval must be either a non-negative number, CRON interval or -1.",
+                                    "pattern": "^((?:-1|\\d+(?:\\.\\d+)?)|(([\\*\\d{1,2}\\,\\-\\/]+\\s){4}[\\*\\d{1,2}\\,\\-\\/]+))$"
+                                },
+                                {
+                                    "type": "number",
+                                    "range": [
+                                        10,
+                                        86400
+                                    ],
+                                    "errorMsg": "Interval must be between 10 and 86400"
+                                }
+                            ],
+                            "help": "Time interval (in seconds) between input runs.",
+                            "required": true,
+                            "defaultValue": "86400"
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Account to Use",
+                            "field": "account",
+                            "options": {
+                                "referenceName": "account"
+                            },
+                            "help": "Select the account that provides the base_url and API key.",
+                            "required": true
+                        }
+                    ],
+                    "inputHelperModule": "city_weather_input_helper",
+                    "title": "City Weather Input"
+                }
+            ],
+            "title": "Inputs",
+            "description": "Manage your data inputs",
+            "table": {
+                "actions": [
+                    "edit",
+                    "delete",
+                    "clone"
+                ],
+                "header": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled"
+                    }
+                ],
+                "moreInfo": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled",
+                        "mapping": {
+                            "true": "Inactive",
+                            "false": "Active"
+                        }
+                    }
+                ]
+            }
+        },
+        "dashboard": {
+            "panels": [
+                {
+                    "name": "default"
+                }
+            ]
+        }
+    },
+    "meta": {
+        "name": "ta_tdd_demo",
+        "restRoot": "ta_tdd_demo",
+        "version": "0.0.1",
+        "displayName": "TA TDD Demo",
+        "schemaVersion": "0.0.9",
+        "supportedThemes": [
+            "light",
+            "dark"
+        ],
+        "_uccVersion": "5.55.0"
+    }
+}

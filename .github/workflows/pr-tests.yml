@@ -2,7 +2,8 @@ name: tests
 
 on:
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
     types: [opened, reopened, synchronize]
     paths:
       - package/bin/**
@@ -15,121 +16,133 @@ concurrency:
 
 jobs:
   splunk-test:
+    name: Deploy and test the TA
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         version: [9.4.1, 9.3.3, 9.2.5]
 
-    env:
-      TEST_CITY: guanacaste
-      TEST_COUNTRY: CR
-      TEST_INDEX: weather_test
-      KV_COLLECTION: city_geo
-      BASE_URL: http://localhost:3000
-      API_KEY: dummy-key
-
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: 3.7
 
-      - name: Install deps (pip + jq)
+      - name: Install dependencies
         run: |
-          set -euxo pipefail
           python -m pip install --upgrade pip
-          python -m pip install splunk-packaging-toolkit splunk-add-on-ucc-framework
-          python -m pip install -r package/lib/requirements.txt
-          python -m pip install pytest requests-mock
-          sudo apt-get update && sudo apt-get install -y jq
+          pip install --upgrade splunk-packaging-toolkit splunk-add-on-ucc-framework
 
-      - name: Build TA, enable input, write account
+      - name: Build TA
         id: build
-        run: |
-          set -euxo pipefail
-          APP_VER=$(jq -r '.info.id.version' package/app.manifest)
-          APP_ID=$(jq -r '.info.id.name' package/app.manifest)
-          echo "app_version=${APP_VER}" >> $GITHUB_OUTPUT
-          echo "app_id=${APP_ID}" >> $GITHUB_OUTPUT
-          ucc-gen build --ta-version "${APP_VER}"
-          mkdir -p "output/${APP_ID}/local"
-          sed 's/disabled = 1/disabled = 0/' etc/cicd/inputs.conf > "output/${APP_ID}/local/inputs.conf"
-          cat > "output/${APP_ID}/local/ta_tdd_demo_account.conf" <<EOF
-          [demo_account]
-          base_url = ${BASE_URL}
-          api_key = ${API_KEY}
-          EOF
-
-      - name: Start containers (network, Mockoon, Splunk) + wait
         shell: bash
         run: |
-          set -euxo pipefail
-          docker network create shared-net || true
+          app_version=$(jq -r '.info.id.version' package/app.manifest)
+          echo "app_version=${app_version}" >> $GITHUB_OUTPUT
+          app_id=$(jq -r '.info.id.name' package/app.manifest)
+          echo "app_id=${app_id}" >> $GITHUB_OUTPUT
+          ucc-gen build --ta-version ${app_version}
+          mkdir -p output/${app_id}/local
+          cp etc/cicd/inputs.conf output/${app_id}/local/inputs.conf
+          # Cuenta local para el mock
+          cat > output/${app_id}/local/ta_tdd_demo_account.conf <<EOF
+          [demo_account]
+          base_url = http://localhost:3000
+          api_key = dummy-key
+          EOF
+          chmod -R +r output
+          chmod -R go-w output
 
-          # ---- Mockoon (robusto con debug y verificación del JSON) ----
-          ID=$(docker ps -aq -f name=^/mockoon$ || true); if [ -n "$ID" ]; then docker rm -f mockoon; fi
-          docker run -d --name mockoon --network shared-net \
-            -v "${{ github.workspace }}/tests/openweather_mock.json:/data/mock.json:ro" \
-            -p 3000:3000 mockoon/cli:latest \
-            start --data /data/mock.json --index 0 --hostname 0.0.0.0 --port 3000 --log-transaction --debug
-          for i in {1..30}; do
-            state=$(docker inspect -f '{{.State.Status}}' mockoon || echo "none")
-            if [ "$state" = "running" ] && docker exec mockoon test -s /data/mock.json && \
-               (curl -sf http://localhost:3000/health >/dev/null || curl -sf http://localhost:3000/ >/dev/null); then
-              echo "✅ Mockoon up"; break
-            fi
-            echo "Esperando a Mockoon..."; docker logs --tail=50 mockoon || true; sleep 2
-          done
-          if ! curl -sf http://localhost:3000/health >/dev/null; then
-            echo "❌ Mockoon no respondió /health. Logs:"; docker logs mockoon || true; exit 1
-          fi
-          curl -sSf "http://localhost:3000/geo/1.0/direct?q=guanacaste,CR&limit=1&appid=dummy-key" >/dev/null
-          curl -sSf "http://localhost:3000/data/2.5/weather?lat=10.5&lon=-85.4&appid=dummy-key" >/dev/null
+      - run: docker network create shared-net
 
-          # ---- Splunk ----
-          ID=$(docker ps -aq -f name=^/splunk$ || true); if [ -n "$ID" ]; then docker rm -f splunk; fi
-          docker run -d --name splunk --network shared-net \
-            -e SPLUNK_START_ARGS="--answer-yes --no-prompt --accept-license" \
-            -e SPLUNK_PASSWORD="password" -e SPLUNK_USER="root" \
-            -v "${{ github.workspace }}/output/${{ steps.build.outputs.app_id }}:/opt/splunk/etc/apps/${{ steps.build.outputs.app_id }}" \
-            -p 8000:8000 -p 8089:8089 "splunk/splunk:${{ matrix.version }}"
-          for i in {1..60}; do
-            docker logs splunk 2>&1 | grep -q "Ansible playbook complete" && break
-            sleep 5
-          done
-          docker exec splunk curl -sf http://mockoon:3000/health >/dev/null
-
-      - name: Obtain session & create index
-        id: sess
+      - name: Start Mockoon container
         run: |
-          set -euxo pipefail
-          XML=$(curl -sk -u admin:password https://localhost:8089/services/auth/login -d username=admin -d password=password)
-          KEY=$(echo "$XML" | sed -n 's:.*<sessionKey>\(.*\)</sessionKey>.*:\1:p')
-          echo "SPLUNK_SESSION_KEY=$KEY" >> $GITHUB_OUTPUT
-          curl -sk -u admin:password https://localhost:8089/services/data/indexes \
-            -d name=${TEST_INDEX} -d datatype=event -d maxTotalDataSizeMB=100 || true
+          docker run -d --name mockoon \
+            --network shared-net \
+            -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mockoon.json \
+            -p 3000:3000 \
+            mockoon/cli:latest \
+            --data /data/mockoon.json --port 3004 --log-transaction
+
+
+      - name: Test Mockoon is alive
+        run: |
+          for i in {1..10}; do
+            if curl --silent --fail http://localhost:3000/health; then
+              echo "Mockoon is up!"
+              exit 0
+            fi
+            echo "Waiting for Mockoon..."
+            sleep 2
+          done
+          echo "Mockoon failed to start"
+          docker logs mockoon
+          exit 1
+
+      - name: Start Splunk container
+        env:
+          SPLUNK_START_ARGS: "--answer-yes --no-prompt --accept-license"
+          SPLUNK_PASSWORD: password
+        run: |
+          docker rm -f splunk 2>/dev/null || true
+          docker run -d --name splunk \
+            --network shared-net \
+            -e SPLUNK_START_ARGS="$SPLUNK_START_ARGS" \
+            -e SPLUNK_PASSWORD="$SPLUNK_PASSWORD" \
+            -e SPLUNK_USER="root" \
+            -v ${{ github.workspace }}/output/${{ steps.build.outputs.app_id }}:/opt/splunk/etc/apps/${{ steps.build.outputs.app_id }} \
+            -p 8000:8000 -p 8089:8089 \
+            splunk/splunk:${{ matrix.version }}
+          # Espera básica
+          sleep 150
+
+      - name: Test connectivity from Splunk to Mockoon
+        run: |
+          echo "Check Splunk readiness..."
+          EXPECTED="Ansible playbook complete"
+          docker logs splunk 2>&1 | grep -F "$EXPECTED" || (echo "Splunk not ready"; exit 1)
+          echo "Curl from Splunk to Mockoon..."
+          docker exec splunk curl -sf http://mockoon:3000/health
 
       - name: Run integration tests
-        working-directory: ./tests
         env:
-          SPLUNK_SESSION_KEY: ${{ steps.sess.outputs.SPLUNK_SESSION_KEY }}
-          SPLUNK_APP: ${{ steps.build.outputs.app_id }}
-          KV_COLLECTION: ${{ env.KV_COLLECTION }}
-          OWNER: nobody
+          BASE_URL: http://localhost:3000
+          API_KEY: dummy-key
+          TEST_CITY: guanacaste
+          TEST_COUNTRY: CR
+          TEST_INDEX: weather_test
           SPLUNK_HOST: localhost
           SPLUNK_PORT: "8089"
           SPLUNK_SCHEME: https
-          BASE_URL: ${{ env.BASE_URL }}
-          API_KEY: ${{ env.API_KEY }}
-          TEST_CITY: ${{ env.TEST_CITY }}
-          TEST_COUNTRY: ${{ env.TEST_COUNTRY }}
-          TEST_INDEX: ${{ env.TEST_INDEX }}
+          OWNER: nobody
+          KV_COLLECTION: city_geo
+          SPLUNK_APP: ${{ steps.build.outputs.app_id }}
+        working-directory: ./tests
         run: |
-          set -euxo pipefail
-          mkdir -p "${{ github.workspace }}/tests/junit"
-          pytest -q integration --junitxml="${{ github.workspace }}/tests/junit/integration-${{ matrix.version }}.xml" || true
+          pip install -r test-requirements.txt
+          mkdir -p junit
+          python -m pytest integration/* --junitxml=junit/integration-${{ matrix.version }}.xml
+
+      - name: Run functional tests
+        if: success()
+        working-directory: ./tests
+        run: |
+          python -m pytest modinput_functional/* --junitxml=junit/test-results-${{ matrix.version }}.xml
+
+      - name: Exporting Mockoon logs
+        if: always()
+        run: |
+          mkdir -p logs/
+          docker logs mockoon > ${{ github.workspace }}/logs/mockoon-${{ matrix.version }}.log 2>&1
+
+      - name: Upload Mockoon logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mockoon-logs-${{ matrix.version }}
+          path: logs/mockoon-${{ matrix.version }}.log
 
       - uses: dorny/test-reporter@v2
         if: always()

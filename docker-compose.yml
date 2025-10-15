@@ -3,23 +3,22 @@ version: "3.8"
 services:
   mockoon:
     image: mockoon/cli:latest
+    # Descomenta esta línea si usas Mac M1/M2/M3 (para forzar compatibilidad)
+    # platform: linux/amd64
     command:
-      - start
       - --data
       - /data/mock.json
-      - --index
-      - "0"
       - --hostname
       - 0.0.0.0
       - --port
       - "3000"
       - --log-transaction
+      - --repair
     volumes:
       - ./tests/openweather_mock.json:/data/mock.json:ro
     ports:
       - "3000:3000"
     healthcheck:
-      # usa Node dentro de la imagen para comprobar /health
       test:
         [
           "CMD-SHELL",
@@ -32,13 +31,18 @@ services:
 
   splunk:
     image: splunk/splunk:9.4.1
+    # Necesario en Mac ARM (M1/M2/M3)
+    platform: linux/amd64
     environment:
       SPLUNK_START_ARGS: --answer-yes --no-prompt --accept-license
-      SPLUNK_PASSWORD: password
+      SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:-password}
       SPLUNK_USER: root
+    volumes:
+      # Asegúrate de haber ejecutado 'ucc-gen build' antes de iniciar los contenedores
+      - ./output/${APP_NAME:-ta_tdd_demo}:/opt/splunk/etc/apps/${APP_NAME:-ta_tdd_demo}:ro
     ports:
-      - "8000:8000"
-      - "8089:8089"
+      - "8000:8000"   # Web UI
+      - "8089:8089"   # API Management
     depends_on:
       mockoon:
         condition: service_healthy

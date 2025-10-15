@@ -1,40 +1,50 @@
-.PHONY: venv build run package
+.PHONY: venv deps build enable-input run logs down package install-tests run-tests clean
 
-APP_VERSION := $$(cat globalConfig.json | jq -r '.meta.version')
-APP_NAME := $$(cat globalConfig.json | jq -r '.meta.name')
+APP_VERSION := $$(jq -r '.meta.version' globalConfig.json)
+APP_NAME    := $$(jq -r '.meta.name' globalConfig.json)
+BASE_URL    ?= http://localhost:3000
+API_KEY     ?= dummy-key
 
 venv:
 	python3 -m venv .venv
 
-build: venv
-	source .venv/bin/activate;
-	ucc-gen build --ta-version=$(APP_VERSION)
+deps: venv
+	. .venv/bin/activate; \
+	pip install --upgrade pip; \
+	# NO instales splunk-packaging-toolkit local (evita permisos/manpages)
+	pip install splunk-add-on-ucc-framework; \
+	pip install -r package/lib/requirements.txt; \
+	pip install pytest requests-mock
 
-run:
-	APP_NAME=$(APP_NAME) docker compose up -d
+build: deps
+	. .venv/bin/activate; \
+	ucc-gen build --ta-version=$(APP_VERSION); \
+	mkdir -p output/$(APP_NAME)/local
 
-package: build
-	# pandoc README.md -f markdown-implicit_figures -o output/$(APP_NAME)/README.pdf
-	chmod -R +r output
-	chmod -R go-w output
+enable-input:
+	sed 's/disabled = 1/disabled = 0/' etc/cicd/inputs.conf > output/$(APP_NAME)/local/inputs.conf
+	printf "[demo_account]\nbase_url = $(BASE_URL)\napi_key = $(API_KEY)\n" > output/$(APP_NAME)/local/ta_tdd_demo_account.conf
+	chmod -R +r output && chmod -R go-w output
+
+run: build enable-input
+	# Fuerza plataforma x86 en Mac ARM para ambas imágenes
+	DOCKER_DEFAULT_PLATFORM=linux/amd64 APP_NAME=$(APP_NAME) docker compose up -d
+
+logs:
+	docker compose logs -f --tail=100
+
+down:
+	docker compose down -v
+
+package: build enable-input
 	mkdir -p dist
+	# ucc-gen package no requiere splunk-packaging-toolkit instalado globalmente
 	ucc-gen package --path output/$(APP_NAME) -o dist
 
-install-docs: venv
-	source .venv/bin/activate;
-	pip install mkdocs==1.6.0 mkdocs-material==9.5.32 mkdocs-print-site-plugin==2.6.0
-
-run-docs: install-docs
-	mkdocs serve
-
-install-tests: venv
-	source .venv/bin/activate;
-	pip install pytest==6.2.4 splunk-sdk
+install-tests: deps
 
 run-tests: install-tests
-	cd tests && \
-	export GENESYSCLOUD_HOST="http://localhost:3004" && python -m pytest integration/*
+	cd tests && pytest -q integration
 
-run-functional-tests: install-tests
-	cd tests;
-	python -m pytest tests/modinput_functional/*
+clean:
+	rm -rf .venv output dist
