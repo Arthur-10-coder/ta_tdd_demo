@@ -10,7 +10,7 @@ import json
 import requests_mock
 
 # Import production helper
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[2] / "ta_tdd_demo" / "package" / "bin"))
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1] / "package" / "bin"))
 import city_weather_input_helper as mod
 
 

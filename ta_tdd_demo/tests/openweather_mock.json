@@ -9,7 +9,7 @@
   "folders": [],
   "routes": [
     {
-      "uuid": "a0000000-0000-0000-0000-a00000000000",
+      "uuid": "a0000000-0000-0000-0000-a00000000000d",
       "type": "http",
       "documentation": "Root OK (para healthcheck simple)",
       "method": "get",
