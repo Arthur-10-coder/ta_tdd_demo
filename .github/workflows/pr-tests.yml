@@ -73,6 +73,43 @@ jobs:
 
       - name: Start Mockoon container
         run: |
+          set -euxo pipefail
+          # 1) Verifica que el JSON exista
+          ls -l ${{ github.workspace }}/tests/openweather_mock.json
+
+          # 2) Limpia contenedor previo
+          docker rm -f mockoon || true
+
+          # 3) Run con flags clave
+          docker run -d --name mockoon \
+            --network shared-net \
+            -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mock.json:ro \
+            -p 3000:3000 \
+            mockoon/cli:latest \
+            --data /data/mock.json \
+            --index 0 \
+            --hostname 0.0.0.0 \
+            --port 3000 \
+            --log-transaction
+
+          # 4) Logs e inspección (ver bind / errores)
+          docker logs --tail=200 mockoon || true
+          docker inspect -f '{{json .NetworkSettings.Ports}}' mockoon
+
+          # 5) Espera /health (tu JSON lo define)
+          for i in {1..30}; do
+            if curl --silent --fail http://localhost:3000/health; then
+              echo "Mockoon is up!"; break
+            fi
+            echo "Waiting for Mockoon..."; sleep 2
+            docker logs --tail=50 mockoon || true
+          done
+
+          # 6) Sanity endpoints
+          curl -sSf "http://localhost:3000/geo/1.0/direct?q=guanacaste,CR&limit=1&appid=dummy-key" >/dev/null
+          curl -sSf "http://localhost:3000/data/2.5/weather?lat=10.5&lon=-85.4&appid=dummy-key" >/dev/null
+
+        run: |
           docker run -d --name mockoon \
             --network shared-net \
             -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mockoon.json \
