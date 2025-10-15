@@ -27,7 +27,6 @@ jobs:
       matrix:
         version: [9.4.1, 9.3.3, 9.2.5]
 
-
     env:
       TEST_CITY: guanacaste
       TEST_COUNTRY: CR
@@ -80,17 +79,16 @@ jobs:
             docker run -d --name mockoon \
               --network shared-net \
               -v ${{ github.workspace }}/tests/openweather_mock.json:/data/mock.json:ro \
-              -p 3004:3004 \
+              -p 3000:3000 \
               mockoon/cli:latest "$@" \
               --data /data/mock.json \
               --hostname 0.0.0.0 \
-              --port 3004 \
+              --port 3000 \
               --log-transaction
           }
 
-          # 1) intenta con 'start'
+          # intenta con 'start'; si falla, reintenta sin 'start' (compatibilidad CLI)
           if ! run_mockoon start; then
-            # 2) reintenta sin 'start' (para CLIs antiguos)
             docker rm -f mockoon || true
             run_mockoon
           fi
@@ -99,16 +97,6 @@ jobs:
           docker inspect -f '{{json .NetworkSettings.Ports}}' mockoon
 
       - name: Test Mockoon is alive
-        run: |
-          for i in {1..5}; do
-            if curl --silent --fail http://localhost:3004/health; then
-              echo "Mockoon is up!"; exit 0
-            fi
-            echo "Waiting for Mockoon..."; sleep 2
-            docker logs --tail=50 mockoon || true
-          done
-          echo "Mockoon failed to start"; exit 1
-
         run: |
           for i in {1..30}; do
             if curl --silent --fail http://localhost:3000/health; then
