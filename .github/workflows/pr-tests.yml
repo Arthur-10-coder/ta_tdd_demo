@@ -127,6 +127,7 @@ jobs:
           SPLUNK_APP: ${{ steps.build.outputs.app_id }}
         working-directory: ./tests
         run: |
+          pip install -r test-requirements.txt
           mkdir -p junit
           python -m pytest integration/* --junitxml=junit/integration-${{ matrix.version }}.xml
 
