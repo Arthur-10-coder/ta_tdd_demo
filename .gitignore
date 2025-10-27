@@ -1,4 +1,4 @@
-# === Python / pytest / entorno virtual ===
+# === Python / pytest / virtual environments ===
 __pycache__/
 *.py[cod]
 *.pytest_cache/
@@ -7,7 +7,7 @@ __pycache__/
 *.pyd
 *.pdb
 
-# === Entornos virtuales ===
+# === Virtual environments ===
 .venv/
 venv/
 env/
@@ -15,7 +15,7 @@ ENV/
 env.bak/
 venv.bak/
 
-# === Dependencias de test ===
+# === Test / coverage artifacts ===
 .tox/
 .coverage
 .cache/
@@ -25,19 +25,23 @@ coverage.xml
 *.py,cover
 .hypothesis/
 
-# === Archivos temporales / locales ===
+# === Temporary / local files ===
 *.log
 *.tmp
 *.swp
 .DS_Store
 .DS_Store?
+Thumbs.db
 
-# === Salidas de build / empaquetado ===
+# === Build / packaging outputs ===
 build/
 dist/
 *.egg-info/
 output/
-
-# === Configuración de CI / Local ===
-logs/
 junit/
+logs/
+
+# === IDE / Editor configurations ===
+.vscode/
+.idea/
+*.iml
