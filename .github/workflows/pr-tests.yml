@@ -112,7 +112,7 @@ jobs:
         run: |
           pip install -r test-requirements.txt
           mkdir -p junit
-          python -m pytest modinput_functional/* --junitxml=junit/test-results-${{ matrix.version }}.xml
+          python -m pytest unit/* --junitxml=junit/test-results-${{ matrix.version }}.xml
 
       - name: Run integration tests
         env:
