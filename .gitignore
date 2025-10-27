@@ -1,0 +1,43 @@
+# === Python / pytest / entorno virtual ===
+__pycache__/
+*.py[cod]
+*.pytest_cache/
+.pytest_cache/
+*.pyo
+*.pyd
+*.pdb
+
+# === Entornos virtuales ===
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# === Dependencias de test ===
+.tox/
+.coverage
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# === Archivos temporales / locales ===
+*.log
+*.tmp
+*.swp
+.DS_Store
+.DS_Store?
+
+# === Salidas de build / empaquetado ===
+build/
+dist/
+*.egg-info/
+output/
+
+# === Configuración de CI / Local ===
+logs/
+junit/
