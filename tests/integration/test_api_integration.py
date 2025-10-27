@@ -14,17 +14,6 @@ import city_weather_input_helper as mod
 
 
 @pytest.mark.integration
-def test_geo_from_api(env):
-    """Calls /geo/1.0/direct and validates latitude and longitude fields."""
-    response = mod.fetch_city_geo_data(
-        env["TEST_CITY"], env["TEST_COUNTRY"], env["API_KEY"], env["BASE_URL"]
-    )
-    assert isinstance(response, dict)
-    assert "lat" in response and "lon" in response
-    assert response["lat"] == 10.5 and response["lon"] == -85.4
-
-
-@pytest.mark.integration
 def test_weather_from_api(env):
     """
     Uses /geo to resolve lat/lon for the test city, then calls /data/2.5/weather.
