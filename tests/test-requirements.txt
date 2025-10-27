@@ -1,5 +1,10 @@
 pytest==6.2.4
-splunk-sdk
-PureCloudPlatformClientV2==221.0.0
 watchdog==3.0.0
 requests-mock==1.12.1
+
+# Splunk libs
+splunk-sdk==1.7.4
+solnlib==4.10.0
+
+# whatever else you already had:
+PureCloudPlatformClientV2==221.0.0
