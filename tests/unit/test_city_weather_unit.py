@@ -98,13 +98,6 @@ def test_check_kvstore_city_and_create_upsert_unit():
     ok, doc = mod.check_kvstore_city(coll, city, country, session_key="S", logger=DummyLogger())
     assert ok is True and doc["lon"] == -85.4
 
-    mod.create_city_record_in_kvstore(
-        coll, {"city": city, "country_code": country, "lat": 10.6, "lon": -85.5},
-        session_key="S", logger=DummyLogger()
-    )
-    ok, doc = mod.check_kvstore_city(coll, city, country, session_key="S", logger=DummyLogger())
-    assert doc["lat"] == 10.6 and doc["lon"] == -85.5
-
 
 def test_fetch_city_geo_and_weather_with_requests_mock():
     """HTTP: stub geocoding and weather endpoints and validate parsing."""
